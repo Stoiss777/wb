@@ -69,7 +69,7 @@ class Counter
 
     public function __destruct()
     {
-        rmdir($this->index_path);
+        //rmdir($this->index_path);
     }
 
     /**
