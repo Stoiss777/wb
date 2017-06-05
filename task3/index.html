@@ -1,0 +1,44 @@
+<html>
+    <head>
+        <title>The game</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script defer src="js/square.js"></script>
+        <script defer src="js/game.js"></script>
+        <script defer src="js/bootstrap.js"></script>
+    </head>
+    <body>
+        <form id="frm">
+            <p>
+                <div>
+                    <label for="squares_number">Количество квадратов</label>
+                </div>
+                <div>
+                    <input id="squares_number" name="squares_number" placeholder="1 или больше" value="">
+                </div>
+            </p>
+
+            <p>
+                <div>
+                    <label for="square_length">Начальный размер</label>
+                </div>
+                <div>
+                    <input id="square_length" name="square_length" placeholder="В пикселях (2 или больше)" value="">
+                </div>
+            </p>
+
+            <p>
+                <div>
+                    <label for="square_min_length">Минимальный размер</label>
+                </div>
+                <div>
+                    <input id="square_min_length" name="square_min_length" placeholder="В пикселях (2 или больше)" value="">
+                </div>
+            </p>
+
+            <div>
+                <input id="start_button" type="submit" value="Start">
+            </div>
+        </form>
+    </body>
+</html>
