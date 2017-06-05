@@ -63,6 +63,16 @@ class Counter
     }
 
     /**
+     * Деструктор
+     *
+     */
+
+    public function __destruct()
+    {
+        rmdir($this->index_path);
+    }
+
+    /**
      * Добавляет новое слово
      *
      * @param string $word
@@ -108,11 +118,7 @@ class Counter
 
     public function saveResult()
     {
-        $result = $this->saveTree($this->index_path);
-
-        rmdir($this->index_path);
-
-        return $result;
+        return $this->saveTree($this->index_path);
     }
 
     /**
