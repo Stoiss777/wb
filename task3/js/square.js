@@ -14,7 +14,7 @@ function Square(board)
 
     function createSquare(length)
     {
-        let div = document.createElement('div');
+        let div = board.document.createElement('div');
         
         div.style.position        = 'absolute';
         div.style.backgroundColor = 'black';

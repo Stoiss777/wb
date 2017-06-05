@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
     <head>
         <title>The game</title>
@@ -6,35 +7,41 @@
         <script defer src="js/square.js"></script>
         <script defer src="js/game.js"></script>
         <script defer src="js/bootstrap.js"></script>
+        <style>
+            form > div
+            {
+                margin: 10px;
+            }
+        </style>
     </head>
     <body>
         <form id="frm">
-            <p>
+            <div>
                 <div>
                     <label for="squares_number">Количество квадратов</label>
                 </div>
                 <div>
                     <input id="squares_number" name="squares_number" placeholder="1 или больше" value="">
                 </div>
-            </p>
+            </div>
 
-            <p>
+            <div>
                 <div>
                     <label for="square_length">Начальный размер</label>
                 </div>
                 <div>
                     <input id="square_length" name="square_length" placeholder="В пикселях (2 или больше)" value="">
                 </div>
-            </p>
+            </div>
 
-            <p>
+            <div>
                 <div>
                     <label for="square_min_length">Минимальный размер</label>
                 </div>
                 <div>
                     <input id="square_min_length" name="square_min_length" placeholder="В пикселях (2 или больше)" value="">
                 </div>
-            </p>
+            </div>
 
             <div>
                 <input id="start_button" type="submit" value="Start">
