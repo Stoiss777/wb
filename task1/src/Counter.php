@@ -90,7 +90,8 @@ class Counter
         }
         else
         {
-            $file = $word . '.idx';
+            // добавляем префикс для windows, т.к. там нельзя файла aux, con и т.д.
+            $file = '1.' . $word . '.idx';
         }
 
         $chars = array();
