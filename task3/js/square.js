@@ -1,6 +1,6 @@
 // Square object
 
-function Square(board)
+function Square(board, fps)
 {
     this.div     = null;
     this.x       = 0;
@@ -9,19 +9,25 @@ function Square(board)
     this.yf      = 0;
     this.length  = 0;
     this.angle   = -1;
-    this.radians = 0;
     this.speed   = 0;
-
+    
+    this.clash_side = 0;
+    
+    this.step_x = 0;
+    this.step_y = 0;
+    
+    this.moved = false;
+    
     function createSquare(length)
     {
-        let div = board.document.createElement('div');
+        div = board.document.createElement('div');
         
         div.style.position        = 'absolute';
         div.style.backgroundColor = 'black';
         div.style.width           = length + 'px';
         div.style.height          = length + 'px';
-        
-        return div;
+		
+		return div;
     }
     
     function moveTo(div, x, y)
@@ -36,7 +42,7 @@ function Square(board)
         
         moveTo(this.div, x, y);
 
-        board.document.body.appendChild(this.div);
+		board.document.body.appendChild(this.div);
 
         this.length = length;
         this.x      = x;
@@ -47,7 +53,7 @@ function Square(board)
     
     this.hide = function()
     {
-        board.document.body.removeChild(this.div);
+		board.document.body.removeChild(this.div);
         
         this.div = null;
     }
@@ -55,36 +61,39 @@ function Square(board)
     this.move = function(angle, speed)
     {
         this.angle   = angle;
-        this.radians = angle * (Math.PI / 180);
         this.speed   = speed;
         
         this.xf = this.x;
         this.yf = this.y;
+        
+        this.step_x = Math.cos(angle * (Math.PI / 180)) * this.speed / fps;
+        this.step_y = Math.sin(angle * (Math.PI / 180)) * this.speed / fps;
     }
     
-    this.run = function(fps)
+    this.run = function(board_width, board_height)
     {
-        if (!this.div)
-            return;
+        this.moved = false;
         
-        this.xf += Math.cos(this.radians) * this.speed / fps;
-        this.yf -= Math.sin(this.radians) * this.speed / fps;
-        
-        if (this.xf + this.length >= board.document.body.clientWidth)
-            this.xf = board.document.body.clientWidth - this.length - 1;
+        this.xf += this.step_x;
+        this.yf -= this.step_y;
 
-        if (this.yf + this.length >= board.document.body.clientHeight)
-            this.yf = board.document.body.clientHeight - this.length - 1;
+        if (this.xf + this.length >= board_width)
+            this.xf = board_width - this.length - 1;
+
+        if (this.yf + this.length >= board_height)
+            this.yf = board_height - this.length - 1;
         
         let x = Math.round(this.xf);
         let y = Math.round(this.yf);
         
         if (this.x != x || this.y != y)
         {
+            this.moved = true;
+            
             this.x = x;
             this.y = y;
             
-            moveTo(this.div, x, y);
+            moveTo(this.div, x, y, board_width);
         }
     }
 }

@@ -53,10 +53,24 @@ function Game(squares_number, square_length, square_min_length)
         '', 
         '_blank', 
         'directories=no,titlebar=no,toolbar=no,location=no,status=no'
-            + ',menubar=no,scrollbars=no'
+            + ',menubar=no,scrollbars=no,resizable=yes,left=0,top=0'
             + ',width=' + window.screen.availWidth
             + ',height=' + window.screen.availHeight
     );
+    
+    /**
+     * Ширина окна с игрой
+     * 
+     */
+    
+    var board_width = 0;
+
+    /**
+     * Высота окна с игрой
+     * 
+     */
+    
+    var board_height = 0;
     
     /**
      * Останавливает игру
@@ -66,10 +80,8 @@ function Game(squares_number, square_length, square_min_length)
     var stop = function()
     {
         clearInterval(jobInterval);
+        board = null;
         squares = [];
-
-        if (startInterval)
-            clearInterval(startInterval);
     };
     
     /**
@@ -148,10 +160,10 @@ function Game(squares_number, square_length, square_min_length)
         if (square.y <= 0)
             return TOP;
 
-        if (square.x + square.length >= board.document.body.clientWidth - 1)
+        if (square.x + square.length >= board_width - 1)
             return RIGHT;
 
-        if (square.y + square.length >= board.document.body.clientHeight - 1)
+        if (square.y + square.length >= board_height - 1)
             return BOTTOM;
         
         if (square.x <= 0)
@@ -171,10 +183,10 @@ function Game(squares_number, square_length, square_min_length)
 
     var checkSpace = function(x, y, length)
     {
-        if ((x < 0) || (x + length > board.document.body.clientWidth - 1))
+        if ((x < 0) || (x + length > board_width - 1))
             return false;
 
-        if ((y < 0) || (y + length >= board.document.body.clientHeight - 1))
+        if ((y < 0) || (y + length >= board_height - 1))
             return false;
 
         for (let i = 0; i < squares.length; i++)
@@ -189,16 +201,14 @@ function Game(squares_number, square_length, square_min_length)
     /**
      * Начинает игру
      * 
-     * @param int board_width   ширина игрового поля
-     * @param int board_height  высота игрового поля
      */
     
-    var start = function(board_width, board_height)
+    var start = function()
     {
         let board_top    = 0;
         let board_left   = 0;
-        let board_bottom = board_height - square_length - 1;
-        let board_right  = board_width - square_length - 1;
+        let board_bottom = board.document.body.offsetHeight - square_length - 1;
+        let board_right  = board.document.body.offsetWidth - square_length - 1;
 
         for (let i = 0; i < squares_number; i++)
         {
@@ -208,7 +218,7 @@ function Game(squares_number, square_length, square_min_length)
             let x = 0;
             let y = 0;
 
-            for (let j = 0; j < 100; j++)
+            for (let j = 0; j < 50; j++)
             {
                 x = Math.round(Math.random() * (board_right - board_left) + board_left);
                 y = Math.round(Math.random() * (board_bottom - board_top) + board_top);
@@ -216,7 +226,7 @@ function Game(squares_number, square_length, square_min_length)
                 // - 20 свобоное место вокруг квадрата
                 if (checkSpace(x - 20, y - 20, square_length + 40))
                 {
-                    let square = new Square(board);
+                    let square = new Square(board, FPS);
                     square.show(x, y, square_length);
                     square.move(angle, speed);
                     squares.push(square);
@@ -228,59 +238,131 @@ function Game(squares_number, square_length, square_min_length)
         
         if (squares.length != squares_number)
         {
-            stop();
-            board.close();
             alert('Не хватает места на игровом поле');
+            board.close();
         }
+    };
+    
+    /**
+     * Разбивает квадрат на два
+     * 
+     * @param int idx  индекс элемента в squares
+     */
+    
+    var clash = function(idx)
+    {
+        let length = Math.floor(squares[idx].length / 2);
+        let speed  = Math.floor(squares[idx].speed * 1.2)
+        let sqrs   = [];
+
+        if (squares[idx].clash_side == TOP)
+        {
+            sqrs.push(
+                {
+                    length: length,
+                    speed:  speed,
+                    angle:  Math.round(Math.random() * (260 - 190) + 190),
+                    x:      squares[idx].x - 1,
+                    y:      squares[idx].y + 1
+                },
+                {
+                    length: length,
+                    speed:  speed,
+                    angle:  Math.round(Math.random() * (350 - 280) + 280),
+                    x:      (squares[idx].x + squares[idx].length - 1) - length,
+                    y:      squares[idx].y + 1
+                }
+            );
+        }
+        else if (squares[idx].clash_side == BOTTOM)
+        {
+            sqrs.push(
+                {
+                    length: length,
+                    speed:  speed,
+                    angle:  Math.round(Math.random() * (170 - 100) + 100),
+                    x:      squares[idx].x - 1,
+                    y:      squares[idx].y + length - 1
+                },
+                {
+                    length: length,
+                    speed:  speed,
+                    angle:  Math.round(Math.random() * (80 - 10) + 10),
+                    x:      (squares[idx].x + squares[idx].length - 1) - length,
+                    y:      squares[idx].y + length - 1
+                }
+            );
+        }
+        else if (squares[idx].clash_side == RIGHT)
+        {
+            sqrs.push(
+                {
+                    length: length,
+                    speed:  speed,
+                    angle:  Math.round(Math.random() * (170 - 100) + 100),
+                    x:      squares[idx].x + length - 1,
+                    y:      squares[idx].y - 1
+                },
+                {
+                    length: length,
+                    speed:  speed,
+                    angle:  Math.round(Math.random() * (260 - 190) + 190),
+                    x:      squares[idx].x + length - 1,
+                    y:      (squares[idx].y + squares[idx].length - 1) - length
+                }
+            );
+        }
+        else if (squares[idx].clash_side == LEFT)
+        {
+            sqrs.push(
+                {
+                    length: length,
+                    speed:  speed,
+                    angle:  Math.round(Math.random() * (80 - 10) + 10),
+                    x:      squares[idx].x + 1,
+                    y:      squares[idx].y - 1
+                },
+                {
+                    length: length,
+                    speed:  speed,
+                    angle:  Math.round(Math.random() * (350 - 280) + 280),
+                    x:      squares[idx].x + 1,
+                    y:      (squares[idx].y + squares[idx].length - 1) - length
+                }
+            );
+        }
+
+        squares[idx].hide();
+
+        squares.splice(idx, 1);
+
+        if (length >= square_min_length)
+        {
+            for (let i = 0; i < sqrs.length; i++)
+            {
+                let sqr = new Square(board, FPS);
+                sqr.show(sqrs[i].x, sqrs[i].y, sqrs[i].length);
+                sqr.move(sqrs[i].angle, sqrs[i].speed);
+                squares.push(sqr);
+            }
+        }
+
     };
 
 
-    /**
-     * Chrome может несолько раз изменить размер окна при открытии
-     * если окно больше максимально возможного размера, поэтому
-     * такой трюк здесь
-     * 
-     * @type int
-     */
+	/**
+	 * Запускаем игру
+	 *
+	 */
+	
+    if (board.document.body.clientHeight)
+    {
+        board_width  = board.document.body.clientWidth;
+        board_height = board.document.body.clientHeight;
+        
+        start();
+    }
 
-    var startCounter = 0;
-
-    var startInterval = setInterval(
-        function()
-        {
-            let board_width  = 0;
-            let board_height = 0;
-            
-            if (startCounter++ >= 15)
-            {
-                board_width  = board.document.body.clientWidth 
-                    ? board.document.body.clientWidth 
-                    : window.screen.availWidth
-                ;
-
-                board_height = board.document.body.clientHeight 
-                    ? board.document.body.clientHeight 
-                    : window.screen.availHeight
-                ;
-            }
-                
-            if (board.document.body.clientHeight && board.document.body.clientHeight < window.screen.availHeight)
-            {
-                board_width  = board.document.body.clientWidth;
-                board_height = board.document.body.clientHeight;
-            }
-    
-    
-            if (board_width && board_height) 
-            {
-                clearInterval(startInterval);
-                start(board_width, board_height);
-            }
-        },
-        100
-    );
-    
-    
     /**
      * Общет движений и столкновений
      * 
@@ -292,213 +374,61 @@ function Game(squares_number, square_length, square_min_length)
             if (!board)
                 return;
             
-            let clash = 1;
-  
-            while (clash)
+            let clashes = [];
+
+            for (var i = 0; i < squares.length; i++)
             {
-                clash = 0;
-                
-                clash_proccess:
+                if (squares[i].moved && !squares[i].clash_side)
                 {
-                    for (let i = 0; i < squares.length; i++)
+
+                    let border_clash = checkBorders(squares[i]);
+
+                    if (border_clash == TOP)
+                        squares[i].move(Math.round(Math.random() * (350 - 190) + 190), squares[i].speed);
+
+                    if (border_clash == RIGHT)
+                        squares[i].move(Math.round(Math.random() * (260 - 80) + 80), squares[i].speed);
+
+                    if (border_clash == BOTTOM)
+                        squares[i].move(Math.round(Math.random() * (170 - 10) + 10), squares[i].speed);
+
+                    if (border_clash == LEFT)
+                        squares[i].move((Math.round(Math.random() * (260 - 100) + 100) + 180) % 360, squares[i].speed);
+
+                    for (let j = i + 1; j < squares.length; j++)
                     {
-                        for (let j = 0; j < squares.length; j++)
+                        let clash_side = intersection(squares[i], squares[j].x, squares[j].y, squares[j].length);
+
+                        if (clash_side)
                         {
-                            if (i == j)
-                                continue;
-                            
-                            clash = intersection(squares[i], squares[j].x, squares[j].y, squares[j].length);
-                            
-                            if (clash)
-                            {
-                                let sqrs = [];
+                            squares[i].clash_side = clash_side;
+                            squares[j].clash_side = (clash_side + 2 > 4) ? clash_side - 2 : clash_side + 2;
 
-                                let length1 = Math.floor(squares[i].length / 2);
-                                let length2 = Math.floor(squares[j].length / 2);
-                                
-                                if (clash == TOP)
-                                {
-                                    let middle = squares[i].y;
-                                    
-                                    sqrs.push(
-                                        {
-                                            length: length1,
-                                            angle:  Math.round(Math.random() * (260 - 190) + 190),
-                                            speed:  Math.floor(squares[i].speed * 1.5),
-                                            x:      squares[i].x - 1,
-                                            y:      middle + 1
-                                        },
-                                        {
-                                            length: length1,
-                                            angle:  Math.round(Math.random() * (350 - 280) + 280),
-                                            speed:  Math.floor(squares[i].speed * 1.5),
-                                            x:      (squares[i].x + squares[i].length - 1) - length1,
-                                            y:      middle + 1
-                                        },
-                                        {
-                                            length: length2,
-                                            angle:  Math.round(Math.random() * (170 - 100) + 100),
-                                            speed:  Math.floor(squares[j].speed * 1.5),
-                                            x:      squares[j].x - 1,
-                                            y:      middle - length2 - 1
-                                        },
-                                        {
-                                            length: length2,
-                                            angle:  Math.round(Math.random() * (80 - 10) + 10),
-                                            speed:  Math.floor(squares[j].speed * 1.5),
-                                            x:      (squares[j].x + squares[j].length - 1) - length2,
-                                            y:      middle - length2 - 1
-                                        }
-                                    );
-                                }
-                                else if (clash == BOTTOM)
-                                {
-                                    let middle = squares[j].y;
-                                    
-                                    sqrs.push(
-                                        {
-                                            length: length1,
-                                            angle:  Math.round(Math.random() * (170 - 100) + 100),
-                                            speed:  Math.floor(squares[i].speed * 1.5),
-                                            x:      squares[i].x - 1,
-                                            y:      middle - length1 - 1
-                                        },
-                                        {
-                                            length: length1,
-                                            angle:  Math.round(Math.random() * (80 - 10) + 10),
-                                            speed:  Math.floor(squares[i].speed * 1.5),
-                                            x:      (squares[i].x + squares[i].length - 1) - length1,
-                                            y:      middle - length1 - 1
-                                        },
-                                        {
-                                            length: length2,
-                                            angle:  Math.round(Math.random() * (260 - 190) + 190),
-                                            speed:  Math.floor(squares[j].speed * 1.5),
-                                            x:      squares[j].x - 1,
-                                            y:      middle + 1
-                                        },
-                                        {
-                                            length: length2,
-                                            angle:  Math.round(Math.random() * (350 - 280) + 280),
-                                            speed:  Math.floor(squares[j].speed * 1.5),
-                                            x:      (squares[j].x + squares[j].length - 1) - length2,
-                                            y:      middle + 1
-                                        }
-                                    );
-                                }
-                                else if (clash == RIGHT)
-                                {
-                                    let middle = squares[j].x;
-                                    
-                                    sqrs.push(
-                                        {
-                                            length: length1,
-                                            angle:  Math.round(Math.random() * (170 - 100) + 100),
-                                            speed:  Math.floor(squares[i].speed * 1.5),
-                                            x:      middle - length1 - 1,
-                                            y:      squares[i].y - 1
-                                        },
-                                        {
-                                            length: length1,
-                                            angle:  Math.round(Math.random() * (260 - 190) + 190),
-                                            speed:  Math.floor(squares[i].speed * 1.5),
-                                            x:      middle - length1 - 1,
-                                            y:      (squares[i].y + squares[i].length - 1) - length1
-                                        },
-                                        {
-                                            length: length2,
-                                            angle:  Math.round(Math.random() * (80 - 10) + 10),
-                                            speed:  Math.floor(squares[j].speed * 1.5),
-                                            x:      middle + 1,
-                                            y:      squares[j].y - 1
-                                        },
-                                        {
-                                            length: length2,
-                                            angle:  Math.round(Math.random() * (350 - 280) + 280),
-                                            speed:  Math.floor(squares[j].speed * 1.5),
-                                            x:      middle + 1,
-                                            y:      (squares[j].y + squares[j].length - 1) - length2
-                                        }
-                                    );
-                                }
-                                else if (clash == LEFT)
-                                {
-                                    let middle = squares[i].x;
-                                    
-                                    sqrs.push(
-                                        {
-                                            length: length1,
-                                            angle:  Math.round(Math.random() * (80 - 10) + 10),
-                                            speed:  Math.floor(squares[i].speed * 1.5),
-                                            x:      middle + 1,
-                                            y:      squares[i].y - 1
-                                        },
-                                        {
-                                            length: length1,
-                                            angle:  Math.round(Math.random() * (350 - 280) + 280),
-                                            speed:  Math.floor(squares[i].speed * 1.5),
-                                            x:      middle + 1,
-                                            y:      (squares[i].y + squares[i].length - 1) - length1
-                                        },
-                                        {
-                                            length: length2,
-                                            angle:  Math.round(Math.random() * (170 - 100) + 100),
-                                            speed:  Math.floor(squares[j].speed * 1.5),
-                                            x:      middle - length2 - 1,
-                                            y:      squares[j].y - 1
-                                        },
-                                        {
-                                            length: length2,
-                                            angle:  Math.round(Math.random() * (260 - 190) + 190),
-                                            speed:  Math.floor(squares[j].speed * 1.5),
-                                            x:      middle - length2 - 1,
-                                            y:      (squares[j].y + squares[j].length - 1) - length2
-                                        }
-                                    );
-                                }
+                            clashes.push(i, j);
 
-                                squares[i].hide();
-                                squares[j].hide();
-
-                                squares.splice(i, 1);
-                                squares.splice((j > i) ? j - 1: j, 1);
-
-                                for (let i = 0; i < sqrs.length; i++)
-                                {
-                                    if (sqrs[i].length >= square_min_length)
-                                    {
-                                        let sqr = new Square(board);
-                                        sqr.show(sqrs[i].x, sqrs[i].y, sqrs[i].length);
-                                        sqr.move(sqrs[i].angle, sqrs[i].speed);
-                                        squares.push(sqr);
-                                    }
-                                }
-
-                                break clash_proccess;
-                            }
+                            break;
                         }
                     }
                 }
+
+
+                if (!squares[i].clash_side)
+                    squares[i].run(board_width, board_height);
             }
-            
-            for (var i = 0; i < squares.length; i++)
+
+            if (clashes.length)
             {
-                let border_clash = checkBorders(squares[i]);
-                
-                if (border_clash == TOP)
-                    squares[i].move(Math.round(Math.random() * (350 - 190) + 190), squares[i].speed);
-                    
-                if (border_clash == RIGHT)
-                    squares[i].move(Math.round(Math.random() * (260 - 80) + 80), squares[i].speed);
+                clashes = clashes.sort(
+                    function(a, b) 
+                    {
+                        return a - b;
+                    }
+                );
 
-                if (border_clash == BOTTOM)
-                    squares[i].move(Math.round(Math.random() * (170 - 10) + 10), squares[i].speed);
-
-                if (border_clash == LEFT)
-                    squares[i].move((Math.round(Math.random() * (260 - 100) + 100) + 180) % 360, squares[i].speed);
-                
-                squares[i].run(FPS);
+                for (let i = clashes.length - 1; i >= 0; i--)
+                    clash(clashes[i]);
             }
+                
         },
         1000 / FPS
     );
@@ -522,7 +452,7 @@ function Game(squares_number, square_length, square_min_length)
             // - 20 свобоное место вокруг квадрата
             if (checkSpace(x - 20, y - 20, length + 40))
             {
-                let square = new Square(board);
+                let square = new Square(board, FPS);
                 square.show(x, y, length);
                 square.move(angle, speed);
                 squares.push(square);
@@ -536,17 +466,12 @@ function Game(squares_number, square_length, square_min_length)
      */
     
     board.addEventListener(
-        'unload',
+        'beforeunload',
         function()
         {
-            clearInterval(jobInterval);
-            squares = [];
-            
-            if (startInterval)
-                clearInterval(startInterval);
+            stop();
         }
     );
-
 
     /**
      * При изменени размера окна, все что не влезло в новый размер удаляется
@@ -557,19 +482,32 @@ function Game(squares_number, square_length, square_min_length)
         'resize',
         function()
         {
-            let list = [];
-            
-            for (let i = 0; i < squares.length; i++)
+            if (board_width && board_height)
             {
-                if (checkBorders(squares[i]))
+                let list = [];
+
+                for (let i = 0; i < squares.length; i++)
                 {
-                    squares[i].hide();
-                    list.push(i);
+                    if (checkBorders(squares[i]))
+                    {
+                        squares[i].hide();
+                        list.push(i);
+                    }
                 }
+
+                for (let i = list.length - 1; i >= 0; i--)
+                    squares.splice(list[i], 1);
+                
+                board_width  = board.document.body.clientWidth;
+                board_height = board.document.body.clientHeight;
             }
-            
-            for (let i = list.length - 1; i >= 0; i--)
-                squares.splice(list[i], 1);
+            else 
+			{
+                board_width  = board.document.body.clientWidth;
+                board_height = board.document.body.clientHeight;
+                
+                start();
+            }
         }
     );
     

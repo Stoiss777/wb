@@ -20,7 +20,7 @@ document.getElementById('frm').onsubmit = function()
         return false;
     }
     
-    new Game(squares_number, square_length, square_min_length);
+    game = new Game(squares_number, square_length, square_min_length);
     
     return false;
 }
